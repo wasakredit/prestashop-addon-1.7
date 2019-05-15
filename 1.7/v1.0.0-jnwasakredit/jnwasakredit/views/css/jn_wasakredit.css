@@ -1,0 +1,38 @@
+/**
+ * 2008 - 2017 Wasa Kredit B2B
+ *
+ * MODULE Wasa Kredit
+ *
+ * @version   1.0.0
+ * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @link      http://www.presto-changeo.com
+ * @copyright Copyright (c) permanent, Wasa Kredit B2B
+ * @license   Wasa Kredit B2B
+ *
+ */
+
+#blockcart-modal .wasa-kredit-product-widget {
+margin-bottom: 20px;
+}
+
+#blockcart-modal .wasa-kredit-product-widget__section-2 {
+        height: auto !important;
+}
+
+.disable_order_button{
+    display: none !important;
+}
+
+
+.product-price-and-shipping p.leasing {
+    text-align: left;
+    height: 23px;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+#checkout .payment_content h2 {
+    padding-top: 9px;
+    font-size: 15px;
+    text-transform: uppercase;
+}
