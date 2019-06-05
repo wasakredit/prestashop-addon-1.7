@@ -11,10 +11,8 @@
  *
 *}
 <div class="jnw_product_item">
-
+{$product_price}
 </div>
 <script type="text/javascript">
-        total_price = $('#our_price_display').text();
-        finalprice = total_price.match(/\d/g).join("");
-        productdetailwidget(finalprice);
+        productdetailwidget({$product_price});
 </script>

@@ -169,6 +169,10 @@ class JnWasaKreditPaymentModuleFrontController extends ModuleFrontController
             $response = $response->data['invalid_properties'][0]['error_message'];
             $error = true;
             $wasa_id = 0;
+        } elseif (!empty($response->data['developer_message'])){
+            $response = $response->data['developer_message'];
+            $error = true;
+            $wasa_id = 0;
         } else {
             preg_match('/id=([^"]+)/', $response->data, $wasa_id);
             $error = false;

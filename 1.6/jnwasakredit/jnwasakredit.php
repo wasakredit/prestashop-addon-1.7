@@ -24,7 +24,7 @@ class JnWasaKredit extends PaymentModule
     {
         $this->name = 'jnwasakredit';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.2';
+        $this->version = '1.0.3';
         $this->author = 'Wasa Kredit AB';
         $this->need_instance = 0;
 
@@ -163,6 +163,8 @@ class JnWasaKredit extends PaymentModule
 
     public function hookDisplayProductButtons($params)
     {
+
+        $this->smarty->assign('product_price', $params['product']->price);
         return $this->display(__FILE__, 'views/templates/hook/displayProductPriceBlock.tpl');
     }
 
@@ -250,6 +252,7 @@ class JnWasaKredit extends PaymentModule
         $this->context->controller->addCSS($this->_path.'views/css/jn_wasakredit.css');
         $this->context->controller->addJS($this->_path.'views/js/jn_wasaajax.js');
 
+        $link = new Link();
         $this->smarty->assign(array(
             'ajax' => Tools::getShopDomainSsl(true).'/modules/jnwasakredit/ajax/'
         ));
