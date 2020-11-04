@@ -11,7 +11,11 @@
  *
 *}
 {if $status == 'ok'}
-	<p> 
-		{l s='Thank you for using Wasa. We will contact you soon with more information' mod='jnwasakredit'}
-	</p>
+	<p class="alert alert-success">{l s='Your order on %s is complete.' sprintf=$shop_name mod='jnwasakredit'}</p>
+
+	<div class="box">
+		<p> 
+			{l s='Thank you for using Wasa Kredit. Please check your email. We will contact you soon with more information.' mod='jnwasakredit'}
+		</p>
+	</div>
 {/if}
