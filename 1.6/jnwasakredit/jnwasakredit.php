@@ -217,15 +217,7 @@ class JnWasaKredit extends PaymentModule
         }
 
         $state = $params['objOrder']->getCurrentState();
-        if (in_array(
-            $state,
-            array(
-                Configuration::get('PS_OS_CHEQUE'),
-                Configuration::get('PS_OS_OUTOFSTOCK'),
-                Configuration::get('PS_OS_OUTOFSTOCK_UNPAID')
-            )
-        )
-            ) {
+        if (in_array($state, array(Configuration::get('PS_OS_PREPARATION')))) {
             $this->smarty->assign(array(
                 'total_to_pay' => Tools::displayPrice(
                     $params['objOrder']->getOrdersTotalPaid(),

@@ -21,6 +21,10 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
         $context = Context::getContext();
         $cart = $this->context->cart;
 
+        $id_wasakredit = $context->cookie->id_wasakredit;
+
+        $this->checkExistingOrder($id_wasakredit);
+
         if (!empty($context->cookie->id_wasakredit)) {
             $this->updateWasaId($cart->id, $context->cookie->id_wasakredit);
         }
@@ -124,6 +128,27 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
                         'step' => '3'
                     )
                 )
+            );
+        }
+    }
+    
+    private function checkExistingOrder($id_wasakredit)
+    {
+        $sql = "SELECT `id_cart` FROM `"._DB_PREFIX_."jn_wasakredit` 
+        WHERE `id_wasakredit` = '".psql($id_wasakredit)."'";
+
+        $id_cart = Db::getInstance()->getValue($sql);
+        $cart = new Cart($id_cart);
+        $customer = new Customer($cart->id_customer);
+        $id_order = Order::getOrderByCartId($id_cart);
+
+        if ($id_order){
+            return Tools::redirect(
+                'index.php?controller=order-confirmation&id_cart='.
+                (int)$id_cart.'&id_module='.
+                (int)$this->module->id.'&id_order='.
+                $id_order.'&key='.
+                $customer->secure_key
             );
         }
     }

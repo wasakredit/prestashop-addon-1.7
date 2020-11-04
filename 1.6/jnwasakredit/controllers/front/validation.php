@@ -17,7 +17,7 @@ class JnWasaKreditValidationModuleFrontController extends ModuleFrontController
     }
     public function postProcess()
     {
-
+        $context = Context::getContext();
         $cart = $this->context->cart;
 
         $sql = "SELECT * FROM `"._DB_PREFIX_."jn_wasakredit` 
@@ -25,6 +25,7 @@ class JnWasaKreditValidationModuleFrontController extends ModuleFrontController
 
         $id_wasakredit = Db::getInstance()->getRow($sql)['id_wasakredit'];
 
+        $this->checkExistingOrder($context->cookie->id_wasakredit);
 
         if ($cart->id_customer == 0 ||
             empty($id_wasakredit) ||
@@ -94,6 +95,27 @@ class JnWasaKreditValidationModuleFrontController extends ModuleFrontController
                 (int)$cart->id.'&id_module='.
                 (int)$this->module->id.'&id_order='.
                 $this->module->currentOrder.'&key='.
+                $customer->secure_key
+            );
+        }
+    }
+
+    private function checkExistingOrder($id_wasakredit)
+    {
+        $sql = "SELECT `id_cart` FROM `"._DB_PREFIX_."jn_wasakredit` 
+        WHERE `id_wasakredit` = '".psql($id_wasakredit)."'";
+
+        $id_cart = Db::getInstance()->getValue($sql);
+        $cart = new Cart($id_cart);
+        $customer = new Customer($cart->id_customer);
+        $id_order = Order::getOrderByCartId($id_cart);
+
+        if ($id_order){
+            return Tools::redirect(
+                'index.php?controller=order-confirmation&id_cart='.
+                (int)$id_cart.'&id_module='.
+                (int)$this->module->id.'&id_order='.
+                $id_order.'&key='.
                 $customer->secure_key
             );
         }
