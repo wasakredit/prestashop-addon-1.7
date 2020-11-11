@@ -18,8 +18,8 @@ services:
       - mysql
     ports:
       - 8080:80
-    volumes:
-      - .:/var/www/html/modules/${PS_MODULE_NAME}
+#    volumes:
+#      - .:/var/www/html/modules/${PS_MODULE_NAME}
     environment:
       - DB_SERVER=mysql
       - DB_PREFIX=ps161_
