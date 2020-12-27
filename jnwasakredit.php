@@ -39,12 +39,13 @@ class JnWasaKredit extends PaymentModule
     {
         $this->name = 'jnwasakredit';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.0.3';
         $this->author = 'Jarda Nalezny';
         $this->controllers = array('payment', 'validation', 'ajax');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->module_key = 'cbeeaf12d953737cdfc75636d737286a';
         $this->bootstrap = true;
+        $this->shop_url = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__;
 
         $config = Configuration::getMultiple(array(
             'JN_WASAKREDIT_CLIENTID',
@@ -194,49 +195,46 @@ class JnWasaKredit extends PaymentModule
 
     public function hookDisplayProductPriceBlock($params)
     {
-        if (!$this->active || !isset($params['hook_origin']) || $params['hook_origin'] != 'product_sheet') {
-            return;
+        if ($this->active && isset($params['hook_origin']) && $params['hook_origin'] == 'product_sheet') {
+            $product_price = 1000;
+            if (isset($params['product']['price_with_reduction'])) {
+                $product_price = $params['product']['price_with_reduction'];
+            } elseif ($params['product']['price_amount']) {
+                $product_price = $params['product']['price_tax_exc'];
+            }
+
+            $product_info = array(
+                          'financial_product' => 'leasing',
+                          'price_ex_vat' => array(
+                            'amount' => $product_price,
+                            'currency' => 'SEK'
+                          )
+                       );
+
+            $response = $this->_client->create_product_widget($product_info);
+
+            $dom = new DOMDocument();
+            $dom->loadHTML($response->data);
+            $xpath = new DOMXPath($dom);
+            $span = $xpath->query('//span[@class="wasa-kredit-product-widget__price"]/text()');
+            $span = $span->item(0);
+            $price = $dom->saveXML($span);
+
+            $dom = new DOMDocument();
+            $dom->loadHTML(mb_convert_encoding($response->data, 'HTML-ENTITIES', 'UTF-8'));
+            $xpath = new DOMXPath($dom);
+            $span = $xpath->query('//span[@class="wasa-kredit-product-widget__info"]/text()');
+            $span = $span->item(0);
+            $text = $dom->saveXML($span);
+
+            $this->smarty->assign(array(
+                'widget' => $response->data,
+                'price' => html_entity_decode($price),
+                'text' => $text
+            ));
+
+            return $this->fetch('module:jnwasakredit/views/templates/hook/displayProductPriceBlock.tpl');
         }
-
-        $product_price = 1000;
-        if (isset($params['product']['price_with_reduction'])) {
-            $product_price = $params['product']['price_with_reduction'];
-        } elseif ($params['product']['price_amount']) {
-            $product_price = $params['product']['price_tax_exc'];
-        }
-
-        $product_info = array(
-                      'financial_product' => 'leasing',
-                      'price_ex_vat' => array(
-                        'amount' => $product_price,
-                        'currency' => 'SEK'
-                      )
-                   );
-
-        $response = $this->_client->create_product_widget($product_info);
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($response->data);
-        $xpath = new DOMXPath($dom);
-        $span = $xpath->query('//span[@class="wasa-kredit-product-widget__price"]/text()');
-        $span = $span->item(0);
-        $price = $dom->saveXML($span);
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($response->data);
-        $xpath = new DOMXPath($dom);
-        $span = $xpath->query('//span[@class="wasa-kredit-product-widget__info"]/text()');
-        $span = $span->item(0);
-        $text = $dom->saveXML($span);
-
-
-        $this->smarty->assign(array(
-            'widget' => $response->data,
-            'price' => html_entity_decode($price),
-            'text' => $text
-        ));
-
-        return $this->fetch('module:jnwasakredit/views/templates/hook/displayProductPriceBlock.tpl');
     }
 
     public function hookPaymentOptions($params)
@@ -244,6 +242,12 @@ class JnWasaKredit extends PaymentModule
         if (!$this->active) {
             return;
         }
+
+        $this->context->smarty->assign(array(
+            'payments' => $this->getCheckoutPaymentOptions($params),
+            'logo' => $this->shop_url.'modules/jnwasakredit/logo.png',
+        ));
+
 
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
@@ -267,6 +271,33 @@ class JnWasaKredit extends PaymentModule
             );
 
         return array($newOption);
+    }
+
+    public function getCheckoutPaymentOptions($params)
+    {
+        $partner_id = $this->CLIENTID;
+        $cart = new Cart($this->context->cookie->id_cart);
+        $amount = $cart->getOrderTotal();
+
+        $ch = curl_init();
+        $partner_id = Configuration::get('JN_WASAKREDIT_CLIENTID');
+
+        $url = "https://b2b.services.wasakredit.se/v2/payment-methods?total_amount=".$amount."&currency=SEK&partner_id=".$partner_id;
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+          "x-test-mode: true"
+        ));
+
+        $plans = curl_exec($ch);
+        curl_close($ch);
+
+        $plans = json_decode($plans);
+
+        return $plans->payment_methods[0]->options->contract_lengths;
     }
 
     public function hookPaymentReturn($params)

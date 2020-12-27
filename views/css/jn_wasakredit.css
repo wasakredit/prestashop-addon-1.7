@@ -12,11 +12,11 @@
  */
 
 #blockcart-modal .wasa-kredit-product-widget {
-margin-bottom: 20px;
+	margin-bottom: 20px !important;
 }
 
 #blockcart-modal .wasa-kredit-product-widget__section-2 {
-        height: auto !important;
+	height: auto !important;
 }
 
 .disable_order_button{
@@ -35,4 +35,14 @@ margin-bottom: 20px;
     padding-top: 9px;
     font-size: 15px;
     text-transform: uppercase;
+}
+
+.checkout_line_wasa  {
+    color: #4471C4;
+}
+
+.wasa_checkout_logo {
+    float: left;
+    width: 82px;
+    margin-right: 20px;
 }

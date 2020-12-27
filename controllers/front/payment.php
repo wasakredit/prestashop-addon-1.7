@@ -100,13 +100,13 @@ class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
               'product_id' => $product['id_product'],
               'product_name' => $product['name'],
               'price_ex_vat' => array(
-                'amount' => $product['price_with_reduction_without_tax'],
+                'amount' => round($product['price_with_reduction_without_tax'], 2),
                 'currency' => $this->context->currency->iso_code
               ),
               'quantity' => $product['cart_quantity'],
               'vat_percentage' => $product['rate'],
               'vat_amount' => array(
-                'amount' => ($product['price_with_reduction']-$product['price_with_reduction_without_tax']),
+                'amount' => round($product['price_with_reduction']-$product['price_with_reduction_without_tax'], 2),
                 'currency' => $this->context->currency->iso_code
               )
             );
