@@ -1,12 +1,12 @@
 <?php
 /**
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  *
  */
 
-class JnWasakreditAjaxModuleFrontController extends ModuleFrontController
+class WasakreditAjaxModuleFrontController extends ModuleFrontController
 {
     public function initContent()
     {

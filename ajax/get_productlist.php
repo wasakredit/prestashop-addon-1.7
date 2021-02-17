@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  *
@@ -10,22 +10,14 @@ require(dirname(__FILE__).'./../../../config/config.inc.php');
 
 use Sdk\AccessToken;
 use Sdk\Api;
+use Sdk\ClientFactory;
 use Sdk\Client;
 use Sdk\Response;
 
-require _PS_MODULE_DIR_.'jn_wasakredit/wasa/Wasa.php';
+require _PS_MODULE_DIR_.'wasakredit/vendor/wasa/client-php-sdk/Wasa.php';
+require_once _PS_MODULE_DIR_.'wasakredit/utility/SdkHelper.php';
 
-$config = Configuration::getMultiple(array(
-    'JN_WASAKREDIT_CLIENTID',
-    'JN_WASAKREDIT_CLIENTSECRET',
-    'JN_WASAKREDIT_TEST'
-));
-
-$client = new Client(
-    $config['JN_WASAKREDIT_CLIENTID'],
-    $config['JN_WASAKREDIT_CLIENTSECRET'],
-    $config['JN_WASAKREDIT_TEST']
-);
+$client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
 
 $product_ids = Tools::getValue('product_ids');
 
@@ -34,11 +26,11 @@ if (count($product_ids) > 0) {
 
     foreach ($product_ids as $product_id) {
         if ($product_id > 0) {
-            $price = Product::getPriceStatic($product_id, false, null, 6, null, false, true, 1, false, null, 10000);
+            $price = Product::getPriceStatic($product_id, false, null, 2, null, false, true, 1, false, null, 10000);
 
             $to_array = array(
-                    'financed_price' => array(
-                    'amount' => $price,
+                'financed_price' => array(
+                    'amount' => number_format($price, 2, '.', ''),
                     'currency' => 'SEK'
                 ),
                 'product_id' => $product_id
@@ -47,13 +39,10 @@ if (count($product_ids) > 0) {
         }
     }
 
-    $payload = array(
-                  'items' => $products
-              );
+    $payload = array('items' => $products);
 
-    $response = $client->calculate_leasing_cost($payload);
-
-    echo json_encode($response->data['leasing_costs']);
+    $response = $client->calculate_monthly_cost($payload);
+    echo json_encode($response->data['monthly_costs']);
 } else {
     echo '';
 }
