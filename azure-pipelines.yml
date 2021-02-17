@@ -32,10 +32,17 @@ steps:
       azure-pipelines.yml
       docker-compose.yml
       .env.example
-
+      .git
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)/build/wasakredit'
+    CleanTargetFolder: true
+    OverWrite: true
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)'
+    rootFolderOrFile: '$(Build.SourcesDirectory)/build/wasakredit'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/wasakredit.zip'
