@@ -1,10 +1,9 @@
-# PHP
-# Test and package your PHP project.
-# Add steps that run tests, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/php
+# Wasa Kredit Prestashop
+# 
+# Fetches dependencies with composer and creates an archive that can be uploaded to prestashop.
 
 trigger:
-- azure-pipelines
+- master
 
 pool:
   vmImage: ubuntu-latest
@@ -40,6 +39,7 @@ steps:
     TargetFolder: '$(Build.SourcesDirectory)/build/wasakredit'
     CleanTargetFolder: true
     OverWrite: true
+
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)/build/wasakredit'
@@ -47,8 +47,10 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/wasakredit.zip'
     replaceExistingArchive: true
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+
