@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/php
 
 trigger:
-- master
+- azure-pipelines
 
 pool:
   vmImage: ubuntu-latest
@@ -22,8 +22,16 @@ steps:
     php -version
   displayName: 'Use PHP version $(phpVersion)'
 
-- script: composer install --no-interaction --prefer-dist
-  displayName: 'composer install'
+#- script: composer install --no-interaction --prefer-dist
+#  displayName: 'composer install'
+
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: 
+    Contents: |
+      azure-pipelines.yml
+      docker-compose.yml
+      .env.example
 
 - task: ArchiveFiles@2
   inputs:
