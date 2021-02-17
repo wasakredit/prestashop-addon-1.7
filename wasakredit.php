@@ -1,10 +1,10 @@
 <?php
 /**
- * 2008 - 2017 Wasa Kredit B2B
+ * 2008 - 2021 Wasa Kredit B2B
  *
  * MODULE Wasa Kredit
  *
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  * @version   1.0.0
@@ -21,11 +21,13 @@ use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use Sdk\AccessToken;
 use Sdk\Api;
 use Sdk\Client;
+use Sdk\ClientFactory;
 use Sdk\Response;
 
-require _PS_MODULE_DIR_.'jnwasakredit/wasa/Wasa.php';
+require _PS_MODULE_DIR_.'wasakredit/vendor/wasa/client-php-sdk/Wasa.php';
+require_once _PS_MODULE_DIR_.'wasakredit/utility/SdkHelper.php';
 
-class JnWasaKredit extends PaymentModule
+class WasaKredit extends PaymentModule
 {
     private $html = '';
     private $postErrors = array();
@@ -37,37 +39,34 @@ class JnWasaKredit extends PaymentModule
 
     public function __construct()
     {
-        $this->name = 'jnwasakredit';
+        $this->name = 'wasakredit';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
-        $this->author = 'Jarda Nalezny';
+        $this->author = 'Wasa Kredit AB';
         $this->controllers = array('payment', 'validation', 'ajax');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->module_key = 'cbeeaf12d953737cdfc75636d737286a';
         $this->bootstrap = true;
 
         $config = Configuration::getMultiple(array(
-            'JN_WASAKREDIT_CLIENTID',
-            'JN_WASAKREDIT_CLIENTSECRET',
-            'JN_WASAKREDIT_TEST'
+            'WASAKREDIT_CLIENTID',
+            'WASAKREDIT_CLIENTSECRET',
+            'WASAKREDIT_TEST',
+            'WASAKREDIT_TEST_CLIENTID',
+            'WASAKREDIT_TEST_CLIENTSECRET'
         ));
 
-        $this->_client = new Client(
-            $config['JN_WASAKREDIT_CLIENTID'],
-            $config['JN_WASAKREDIT_CLIENTSECRET'],
-            $config['JN_WASAKREDIT_TEST']
-        );
-        
-        if (isset($config['JN_WASAKREDIT_CLIENTID'])) {
-            $this->CLIENTID = $config['JN_WASAKREDIT_CLIENTID'];
-        }
-        if (isset($config['JN_WASAKREDIT_CLIENTSECRET'])) {
-            $this->CLIENTSECRET = $config['JN_WASAKREDIT_CLIENTSECRET'];
-        }
-        if (isset($config['JN_WASAKREDIT_TEST'])) {
-            $this->TEST = $config['JN_WASAKREDIT_TEST'];
-        }
+        $this->_client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
 
+        if (isset($config['WASAKREDIT_CLIENTID'])) {
+            $this->CLIENTID = $config['WASAKREDIT_TEST'] ? $config['WASAKREDIT_TEST_CLIENTID'] :  $config['WASAKREDIT_CLIENTID'];
+        }
+        if (isset($config['WASAKREDIT_CLIENTSECRET'])) {
+            $this->CLIENTSECRET = $config['WASAKREDIT_TEST'] ? $config['WASAKREDIT_TEST_CLIENTSECRET'] : $config['WASAKREDIT_CLIENTSECRET'];
+        }
+        if (isset($config['WASAKREDIT_TEST'])) {
+            $this->TEST = $config['WASAKREDIT_TEST'];
+        }
 
         parent::__construct();
 
@@ -92,7 +91,7 @@ class JnWasaKredit extends PaymentModule
     public function install()
     {
         Db::getInstance()->execute('
-            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'jn_wasakredit` (
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'wasakredit` (
             `id_cart` int unsigned NOT NULL,
             `id_wasakredit` varchar(36) COLLATE "utf8_general_ci" NOT NULL
             ) ENGINE='._MYSQL_ENGINE_.' COLLATE "utf8_general_ci"');
@@ -101,16 +100,17 @@ class JnWasaKredit extends PaymentModule
             && $this->registerHook('paymentOptions')
             && $this->registerHook('displayProductPriceBlock')
             && $this->registerHook('displayHeader')
-            && $this->registerHook('paymentOptions')
             && $this->registerHook('paymentReturn')
         ;
     }
 
     public function uninstall()
     {
-        return Configuration::deleteByName('JN_WASAKREDIT_CLIENTID')
-            && Configuration::deleteByName('JN_WASAKREDIT_CLIENTSECRET')
-            && Configuration::deleteByName('JN_WASAKREDIT_TEST')
+        return Configuration::deleteByName('WASAKREDIT_CLIENTID')
+            && Configuration::deleteByName('WASAKREDIT_CLIENTSECRET')
+            && Configuration::deleteByName('WASAKREDIT_TEST')
+            && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTID')      
+            && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTSECRET')  
             && parent::uninstall()
         ;
     }
@@ -118,13 +118,13 @@ class JnWasaKredit extends PaymentModule
     private function postValidation()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            if (!Tools::getValue('JN_WASAKREDIT_CLIENTID')) {
+            if (!Tools::getValue('WASAKREDIT_CLIENTID')) {
                 $this->postErrors[] = $this->trans(
                     'The "CLIENTID" field is required.',
                     array(),
                     'Modules.wasakredit.Admin'
                 );
-            } elseif (!Tools::getValue('JN_WASAKREDIT_CLIENTSECRET')) {
+            } elseif (!Tools::getValue('WASAKREDIT_CLIENTSECRET')) {
                 $this->postErrors[] = $this->trans(
                     'The "CLIENTSECRET" field is required.',
                     array(),
@@ -138,16 +138,24 @@ class JnWasaKredit extends PaymentModule
     {
         if (Tools::isSubmit('btnSubmit')) {
             Configuration::updateValue(
-                'JN_WASAKREDIT_CLIENTID',
-                Tools::getValue('JN_WASAKREDIT_CLIENTID')
+                'WASAKREDIT_CLIENTID',
+                Tools::getValue('WASAKREDIT_CLIENTID')
             );
             Configuration::updateValue(
-                'JN_WASAKREDIT_CLIENTSECRET',
-                Tools::getValue('JN_WASAKREDIT_CLIENTSECRET')
+                'WASAKREDIT_CLIENTSECRET',
+                Tools::getValue('WASAKREDIT_CLIENTSECRET')
             );
             Configuration::updateValue(
-                'JN_WASAKREDIT_TEST',
-                Tools::getValue('JN_WASAKREDIT_TEST')
+                'WASAKREDIT_TEST',
+                Tools::getValue('WASAKREDIT_TEST')
+            );
+            Configuration::updateValue(
+                'WASAKREDIT_TEST_CLIENTID',
+                Tools::getValue('WASAKREDIT_TEST_CLIENTID')
+            );
+            Configuration::updateValue(
+                'WASAKREDIT_TEST_CLIENTSECRET',
+                Tools::getValue('WASAKREDIT_TEST_CLIENTSECRET')
             );
         }
         $this->html .= $this->displayConfirmation(
@@ -181,63 +189,39 @@ class JnWasaKredit extends PaymentModule
 
     public function hookdisplayHeader($params)
     {
-        $this->context->controller->addCSS($this->_path.'views/css/jn_wasakredit.css');
-        $this->context->controller->addJS($this->_path.'views/js/jn_wasakredit.js');
-        $this->context->controller->addJS($this->_path.'views/js/jn_wasaajax.js');
+        $this->context->controller->addCSS($this->_path.'views/css/wasakredit.css');
+        $this->context->controller->addJS($this->_path.'views/js/wasakredit.js');
+        $this->context->controller->addJS($this->_path.'views/js/wasaajax.js');
 
         $this->smarty->assign(array(
-            'ajax' => $this->context->link->getBaseLink().'modules/jn_wasakredit/ajax/'
+            'ajax' => $this->context->link->getBaseLink().'modules/wasakredit/ajax/'
         ));
 
-        return $this->fetch('module:jnwasakredit/views/templates/hook/header_productlistajax.tpl');
+        return $this->fetch('module:wasakredit/views/templates/hook/header_productlistajax.tpl');
     }
-
+    
     public function hookDisplayProductPriceBlock($params)
-    {
-        if (!$this->active || !isset($params['hook_origin']) || $params['hook_origin'] != 'product_sheet') {
-            return;
+        {
+            if (!$this->active || !isset($params['hook_origin']) || $params['hook_origin'] != 'product_sheet') {
+                return;
+            }
+    
+            $product_price = 1000;
+            if (isset($params['product']['price_with_reduction'])) {
+                $product_price = $params['product']['price_with_reduction'];
+            } elseif ($params['product']['price_amount']) {
+                $product_price = $params['product']['price_tax_exc'];
+            }
+    
+            $response = $this->_client->get_monthly_cost_widget($product_price);
+    
+            if ($response -> statusCode == '200') {
+                    $this->smarty->assign(array('widget' => $response->data));
+                    return $this->fetch('module:wasakredit/views/templates/hook/displayProductPriceBlock.tpl');
+            } else {
+                echo '';
+            }
         }
-
-        $product_price = 1000;
-        if (isset($params['product']['price_with_reduction'])) {
-            $product_price = $params['product']['price_with_reduction'];
-        } elseif ($params['product']['price_amount']) {
-            $product_price = $params['product']['price_tax_exc'];
-        }
-
-        $product_info = array(
-                      'financial_product' => 'leasing',
-                      'price_ex_vat' => array(
-                        'amount' => $product_price,
-                        'currency' => 'SEK'
-                      )
-                   );
-
-        $response = $this->_client->create_product_widget($product_info);
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($response->data);
-        $xpath = new DOMXPath($dom);
-        $span = $xpath->query('//span[@class="wasa-kredit-product-widget__price"]/text()');
-        $span = $span->item(0);
-        $price = $dom->saveXML($span);
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($response->data);
-        $xpath = new DOMXPath($dom);
-        $span = $xpath->query('//span[@class="wasa-kredit-product-widget__info"]/text()');
-        $span = $span->item(0);
-        $text = $dom->saveXML($span);
-
-
-        $this->smarty->assign(array(
-            'widget' => $response->data,
-            'price' => html_entity_decode($price),
-            'text' => $text
-        ));
-
-        return $this->fetch('module:jnwasakredit/views/templates/hook/displayProductPriceBlock.tpl');
-    }
 
     public function hookPaymentOptions($params)
     {
@@ -249,7 +233,7 @@ class JnWasaKredit extends PaymentModule
         $newOption->setModuleName($this->name)
             ->setCallToActionText(
                 $this->trans(
-                    'Wasa Kredit',
+                    'Wasa Kredit Leasing',
                     array(),
                     'Modules.wasakredit.Admin'
                 )
@@ -263,7 +247,7 @@ class JnWasaKredit extends PaymentModule
                 )
             )
             ->setAdditionalInformation(
-                $this->fetch('module:jnwasakredit/views/templates/front/payment_infos.tpl')
+                $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
             );
 
         return array($newOption);
@@ -293,7 +277,7 @@ class JnWasaKredit extends PaymentModule
         } else {
             $this->smarty->assign('status', 'failed');
         }
-        return $this->fetch('module:jnwasakredit/views/templates/hook/payment_return.tpl');
+        return $this->fetch('module:wasakredit/views/templates/hook/payment_return.tpl');
     }
 
     public function renderForm()
@@ -308,26 +292,38 @@ class JnWasaKredit extends PaymentModule
                     array(
                         'type' => 'text',
                         'label' => $this->trans('Client ID', array(), 'Modules.wasakredit.Admin'),
-                        'name' => 'JN_WASAKREDIT_CLIENTID',
+                        'name' => 'WASAKREDIT_CLIENTID',
                         'required' => true
                     ),
                     array(
                         'type' => 'text',
                         'label' => $this->trans('Client secret key', array(), 'Modules.wasakredit.Admin'),
-                        'name' => 'JN_WASAKREDIT_CLIENTSECRET',
+                        'name' => 'WASAKREDIT_CLIENTSECRET',
                         'required' => true
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->trans('Test Client ID', array(), 'Modules.wasakredit.Admin'),
+                        'name' => 'WASAKREDIT_TEST_CLIENTID',
+                        'required' => false
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->trans('Test Client secret key', array(), 'Modules.wasakredit.Admin'),
+                        'name' => 'WASAKREDIT_TEST_CLIENTSECRET',
+                        'required' => false
                     ),
                     array(
                         'type' => 'switch',
                         'label' => $this->trans('Test mode', array(), 'Modules.wasakredit.Admin'),
-                        'name' => 'JN_WASAKREDIT_TEST',
+                        'name' => 'WASAKREDIT_TEST',
                         'values' => array(
                             array(
-                                'id' => 'JN_WASAKREDIT_TEST_on',
+                                'id' => 'WASAKREDIT_TEST_on',
                                 'value' => 1
                             ),
                             array(
-                                'id' => 'JN_WASAKREDIT_TEST_off',
+                                'id' => 'WASAKREDIT_TEST_off',
                                 'value' => 0
                             )
                         )
@@ -362,18 +358,26 @@ class JnWasaKredit extends PaymentModule
     public function getConfigFieldsValues()
     {
         return array(
-            'JN_WASAKREDIT_CLIENTID' => Tools::getValue(
-                'JN_WASAKREDIT_CLIENTID',
-                Configuration::get('JN_WASAKREDIT_CLIENTID')
+            'WASAKREDIT_CLIENTID' => Tools::getValue(
+                'WASAKREDIT_CLIENTID',
+                Configuration::get('WASAKREDIT_CLIENTID')
             ),
-            'JN_WASAKREDIT_TEST' => Tools::getValue(
-                'JN_WASAKREDIT_TEST',
-                Configuration::get('JN_WASAKREDIT_TEST')
+            'WASAKREDIT_TEST' => Tools::getValue(
+                'WASAKREDIT_TEST',
+                Configuration::get('WASAKREDIT_TEST')
             ),
-            'JN_WASAKREDIT_CLIENTSECRET' => Tools::getValue(
-                'JN_WASAKREDIT_CLIENTSECRET',
-                Configuration::get('JN_WASAKREDIT_CLIENTSECRET')
+            'WASAKREDIT_CLIENTSECRET' => Tools::getValue(
+                'WASAKREDIT_CLIENTSECRET',
+                Configuration::get('WASAKREDIT_CLIENTSECRET')
             ),
+            'WASAKREDIT_TEST_CLIENTID' => Tools::getValue(
+                'WASAKREDIT_TEST_CLIENTID',
+                Configuration::get('WASAKREDIT_TEST_CLIENTID')
+            ),
+            'WASAKREDIT_TEST_CLIENTSECRET' => Tools::getValue(
+                'WASAKREDIT_TEST_CLIENTSECRET',
+                Configuration::get('WASAKREDIT_TEST_CLIENTSECRET')
+            ),        
         );
     }
 }

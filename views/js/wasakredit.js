@@ -4,7 +4,7 @@
  * MODULE Wasa Kredit
  *
  * @version   1.0.0
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @link      http://www.presto-changeo.com
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B

@@ -1,12 +1,12 @@
 <?php
 /**
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  *
  */
 
-class JnWasakreditValidationModuleFrontController extends ModuleFrontController
+class WasakreditValidationModuleFrontController extends ModuleFrontController
 {
     /**
      * @see FrontController::initContent()
@@ -29,7 +29,7 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
             $this->updateWasaId($cart->id, $context->cookie->id_wasakredit);
         }
 
-        $sql = "SELECT * FROM `"._DB_PREFIX_."jn_wasakredit` 
+        $sql = "SELECT * FROM `"._DB_PREFIX_."wasakredit` 
         WHERE `id_cart` = '".$cart->id."'";
 
         $id_wasakredit = Db::getInstance()->getRow($sql)['id_wasakredit'];
@@ -45,7 +45,7 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
 
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'jnwasakredit') {
+            if ($module['name'] == 'wasakredit') {
                 $authorized = true;
                 break;
             }
@@ -134,7 +134,7 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
     
     private function checkExistingOrder($id_wasakredit)
     {
-        $sql = "SELECT `id_cart` FROM `"._DB_PREFIX_."jn_wasakredit` 
+        $sql = "SELECT `id_cart` FROM `"._DB_PREFIX_."wasakredit` 
         WHERE `id_wasakredit` = '".psql($id_wasakredit)."'";
 
         $id_cart = Db::getInstance()->getValue($sql);
@@ -155,15 +155,15 @@ class JnWasakreditValidationModuleFrontController extends ModuleFrontController
 
     private function updateWasaId($id_cart, $id_wasakredit)
     {
-        $sql = "SELECT * FROM `"._DB_PREFIX_."jn_wasakredit` 
+        $sql = "SELECT * FROM `"._DB_PREFIX_."wasakredit` 
         WHERE `id_cart` = '".(int)$id_cart."'";
 
         if (empty(Db::getInstance()->getRow($sql))) {
-            $sql = 'INSERT INTO '._DB_PREFIX_.'jn_wasakredit 
+            $sql = 'INSERT INTO '._DB_PREFIX_.'wasakredit 
             (id_cart,id_wasakredit) 
             VALUES ("'.(int)$id_cart.'","'.pSQL($id_wasakredit).'")';
         } else {
-            $sql = 'UPDATE '._DB_PREFIX_.'jn_wasakredit 
+            $sql = 'UPDATE '._DB_PREFIX_.'wasakredit 
             SET id_wasakredit = "'.pSQL($id_wasakredit).'" 
             WHERE  id_cart = "'.(int)$id_cart.'"';
         }
