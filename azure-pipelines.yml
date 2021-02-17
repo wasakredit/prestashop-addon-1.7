@@ -22,8 +22,8 @@ steps:
     php -version
   displayName: 'Use PHP version $(phpVersion)'
 
-#- script: composer install --no-interaction --prefer-dist
-#  displayName: 'composer install'
+- script: composer install --no-interaction --prefer-dist
+  displayName: 'composer install'
 
 - task: DeleteFiles@1
   inputs:
