@@ -10,4 +10,3 @@
  * @license   Wasa Kredit B2B
  *
 *}
-

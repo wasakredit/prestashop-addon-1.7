@@ -43,7 +43,7 @@ class WasaKredit extends PaymentModule
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
         $this->author = 'Wasa Kredit AB';
-        $this->controllers = array('payment', 'validation', 'ajax');
+        $this->controllers = array('leasingpayment', 'invoicepayment', 'validation', 'ajax');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->module_key = 'cbeeaf12d953737cdfc75636d737286a';
         $this->bootstrap = true;
@@ -229,8 +229,8 @@ class WasaKredit extends PaymentModule
             return;
         }
 
-        $newOption = new PaymentOption();
-        $newOption->setModuleName($this->name)
+        $leasing = new PaymentOption();
+        $leasing->setModuleName($this->name)
             ->setCallToActionText(
                 $this->trans(
                     'Wasa Kredit Leasing',
@@ -241,7 +241,7 @@ class WasaKredit extends PaymentModule
             ->setAction(
                 $this->context->link->getModuleLink(
                     $this->name,
-                    'payment',
+                    'leasingpayment',
                     array(),
                     true
                 )
@@ -249,8 +249,30 @@ class WasaKredit extends PaymentModule
             ->setAdditionalInformation(
                 $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
             );
-
-        return array($newOption);
+           
+        // TODO: toggleable 
+        $invoice = new PaymentOption();
+        $invoice->setModuleName($this->name)
+            ->setCallToActionText(
+                $this->trans(
+                    'Wasa Kredit Faktura',
+                    array(),
+                    'Modules.wasakredit.Admin'
+                )
+            )
+            ->setAction(
+                $this->context->link->getModuleLink(
+                    $this->name,
+                    'invoicepayment',
+                    array(),
+                    true
+                )
+            )
+            ->setAdditionalInformation(
+                $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
+            );
+            
+        return array($leasing, $invoice);
     }
 
     public function hookPaymentReturn($params)

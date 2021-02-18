@@ -15,7 +15,7 @@ use Sdk\Response;
 require _PS_MODULE_DIR_.'wasakredit/vendor/wasa/client-php-sdk/Wasa.php';
 require_once _PS_MODULE_DIR_.'wasakredit/utility/SdkHelper.php';
 
-class WasakreditPaymentModuleFrontController extends ModuleFrontController
+class WasakreditInvoicePaymentModuleFrontController extends ModuleFrontController
 {
     /**
      * @see FrontController::postProcess()
@@ -50,9 +50,18 @@ class WasakreditPaymentModuleFrontController extends ModuleFrontController
 
         $this->context->smarty->assign($this->getTemplateVars());
 
-        $this->setTemplate('module:wasakredit/views/templates/front/wasa_checkout.tpl');
+        $this->setTemplate('module:wasakredit/views/templates/front/invoice_checkout.tpl');
     }
-
+    
+//     public function getOrderTotal($withTaxes = true, $type = Cart::BOTH, $products = null, $id_carrier = null, $use_cache = false,        bool $keepOrderPrices = false    ) {        if ((int) $id_carrier <= 0) {            $id_carrier = null;        }
+    function apply_currency($amount)
+    {
+        return array(
+            'amount' => $amount,
+            'currency' => $this->context->currency->iso_code
+        );
+    }
+    
     public function getTemplateVars()
     {
         $this->_client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
@@ -87,24 +96,41 @@ class WasakreditPaymentModuleFrontController extends ModuleFrontController
         $cart_products = $cart->getProducts();
         $cart_items = array();
 
+        $currency_code = $this->context->currency->iso_code;
         foreach ($cart_products as $product) {
+            $vat = ($product['price_with_reduction']-$product['price_with_reduction_without_tax']);
             $item = array(
               'product_id' => $product['id_product'],
               'product_name' => $product['name'],
-              'price_ex_vat' => array(
-                'amount' => $product['price_with_reduction_without_tax'],
-                'currency' => $this->context->currency->iso_code
-              ),
               'quantity' => $product['cart_quantity'],
               'vat_percentage' => $product['rate'],
-              'vat_amount' => array(
-                'amount' => ($product['price_with_reduction']-$product['price_with_reduction_without_tax']),
-                'currency' => $this->context->currency->iso_code
-              )
+              'price_incl_vat' => $this->apply_currency($product['price_with_reduction']),
+              'price_ex_vat' => $this->apply_currency($product['price_with_reduction_without_tax']),
+              'vat_amount' => $this->apply_currency($product['price_with_reduction']-$product['price_with_reduction_without_tax']),
+              'total_price_incl_vat' => $this->apply_currency($product['price_with_reduction'] * $product['cart_quantity']),
+              'total_price_ex_vat' => $this->apply_currency($product['price_with_reduction_without_tax'] * $product['cart_quantity']),
+              'total_vat' => $this->apply_currency($vat * $product['cart_quantity']),
             );
 
             array_push($cart_items, $item);
         }
+        $shipping_price_incl_vat = $cart->getTotalShippingCost(null, true);
+        $shipping_price_ex_vat = $cart->getTotalShippingCost(null, false);
+        $shipping_price_vat = $shipping_price_incl_vat - $shipping_price_ex_vat;
+        $shipping_cart_item = array(
+          'product_id' => $cart->id_carrier,
+          'product_name' => "Frakt", // TODO: Shipping type name?
+          'quantity' => 1,
+          'vat_percentage' => $product['rate'],
+          'price_incl_vat' => $this->apply_currency($shipping_price_incl_vat),
+          'price_ex_vat' => $this->apply_currency($shipping_price_ex_vat),
+          'vat_amount' => $this->apply_currency($shipping_price_vat),
+          'total_price_incl_vat' => $this->apply_currency($shipping_price_incl_vat),
+          'total_price_ex_vat' => $this->apply_currency($shipping_price_ex_vat),
+          'total_vat' => $this->apply_currency($shipping_price_vat)
+        );
+        array_push($cart_items, $shipping_cart_item);
+        
         $purchaser_phone = '';
 
         if (!empty($b_address->phone_mobile)) {
@@ -121,38 +147,37 @@ class WasakreditPaymentModuleFrontController extends ModuleFrontController
             $recipient_phone = $d_address->phone;
         }
 
+        $total_price_incl_vat = $cart->getOrderTotal(true, Cart::BOTH);        
+        $total_price_ex_vat = $cart->getOrderTotal(false, Cart::BOTH);
+        $total_vat = $total_price_incl_vat - $total_price_ex_vat;
+       
         $payload = array(
-          'payment_types' => 'leasing',
-          'order_reference_id' => $cart->secure_key,
           'order_references' => array(
-                    array(
-                        'key' => 'partner_checkout_id',
-                        'value' => $cart->secure_key
-                    ),
-                    array(
-                        'key' => 'partner_reserved_order_number',
-                        'value' => $cart->secure_key
-                    ),
+            array(
+              'key' => 'partner_checkout_id',
+              'value' => $cart->secure_key
+            ),
+            array(
+              'key' => 'partner_reserved_order_number',
+              'value' => $cart->secure_key
+            ),
           ),
           'purchaser_name' => $purchaser_name,
           'purchaser_email' => $purchaser_email,
           'customer_organization_number' => $b_address->dni,
           'purchaser_phone' => $purchaser_phone,
-          'delivery_address' => $delivery_address,
-          'billing_address' => $billing_address,
           'recipient_name' => $recipient_name,
           'recipient_phone' => $recipient_phone,
           'cart_items' => $cart_items,
-          'shipping_cost_ex_vat' => array(
-              'amount' => $cart->getTotalShippingCost(null, false),
-              'currency' => $this->context->currency->iso_code
-          ),
+          'total_price_incl_vat' => $this->apply_currency($total_price_incl_vat),
+          'total_price_ex_vat' => $this->apply_currency($total_price_ex_vat),
+          'total_vat' => $this->apply_currency($total_vat),
           'request_domain' => $this->context->link->getBaseLink(),
           'confirmation_callback_url' => $this->context->link->getModuleLink(
-              'wasakredit',
-              'payment',
-              array(),
-              true
+            'wasakredit',
+            'validation',
+            array(),
+            true
           ),
           'ping_url' => $this->context->link->getModuleLink(
               'wasakredit',
@@ -160,9 +185,11 @@ class WasakreditPaymentModuleFrontController extends ModuleFrontController
               array(),
               true
           )
+          // partner_reference
+          // billing details
         );
 
-        $response = $this->_client->create_checkout($payload);
+        $response = $this->_client->create_invoice_checkout($payload);
 
         if (!empty($response->data['invalid_properties'][0]['error_message'])) {
             $response = $response->data['invalid_properties'][0]['error_message'];
