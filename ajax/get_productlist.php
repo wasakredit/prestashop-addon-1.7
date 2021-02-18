@@ -19,8 +19,12 @@ require_once _PS_MODULE_DIR_.'wasakredit/utility/SdkHelper.php';
 
 $client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
 
-$product_ids = Tools::getValue('product_ids');
+if (!Configuration::get('WASAKREDIT_LEASING_ENABLED')) {
+    echo '';
+    return;
+}
 
+$product_ids = Tools::getValue('product_ids');
 if (count($product_ids) > 0) {
     $products = array();
 

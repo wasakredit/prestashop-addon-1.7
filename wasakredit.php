@@ -32,9 +32,8 @@ class WasaKredit extends PaymentModule
     private $html = '';
     private $postErrors = array();
 
-    public $CLIENTID;
-    public $CLIENTSECRET;
-    public $TEST;
+    public $LEASING_ENABLED;
+    public $INVOICE_ENABLED;
     public $extra_mail_vars;
 
     public function __construct()
@@ -49,24 +48,18 @@ class WasaKredit extends PaymentModule
         $this->bootstrap = true;
 
         $config = Configuration::getMultiple(array(
-            'WASAKREDIT_CLIENTID',
-            'WASAKREDIT_CLIENTSECRET',
-            'WASAKREDIT_TEST',
-            'WASAKREDIT_TEST_CLIENTID',
-            'WASAKREDIT_TEST_CLIENTSECRET'
+            'WASAKREDIT_LEASING_ENABLED',
+            'WASAKREDIT_INVOICE_ENABLED'
         ));
 
+        if (isset($config['WASAKREDIT_LEASING_ENABLED'])) {
+            $this->LEASING_ENABLED = $config['WASAKREDIT_LEASING_ENABLED'];
+        }
+        if (isset($config['WASAKREDIT_INVOICE_ENABLED'])) {
+            $this->INVOICE_ENABLED = $config['WASAKREDIT_INVOICE_ENABLED'];
+        }
+        
         $this->_client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
-
-        if (isset($config['WASAKREDIT_CLIENTID'])) {
-            $this->CLIENTID = $config['WASAKREDIT_TEST'] ? $config['WASAKREDIT_TEST_CLIENTID'] :  $config['WASAKREDIT_CLIENTID'];
-        }
-        if (isset($config['WASAKREDIT_CLIENTSECRET'])) {
-            $this->CLIENTSECRET = $config['WASAKREDIT_TEST'] ? $config['WASAKREDIT_TEST_CLIENTSECRET'] : $config['WASAKREDIT_CLIENTSECRET'];
-        }
-        if (isset($config['WASAKREDIT_TEST'])) {
-            $this->TEST = $config['WASAKREDIT_TEST'];
-        }
 
         parent::__construct();
 
@@ -111,6 +104,8 @@ class WasaKredit extends PaymentModule
             && Configuration::deleteByName('WASAKREDIT_TEST')
             && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTID')      
             && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTSECRET')  
+            && Configuration::deleteByName('WASAKREDIT_LEASING_ENABLED')  
+            && Configuration::deleteByName('WASAKREDIT_INVOICE_ENABLED')  
             && parent::uninstall()
         ;
     }
@@ -157,6 +152,14 @@ class WasaKredit extends PaymentModule
                 'WASAKREDIT_TEST_CLIENTSECRET',
                 Tools::getValue('WASAKREDIT_TEST_CLIENTSECRET')
             );
+            Configuration::updateValue(
+                'WASAKREDIT_LEASING_ENABLED',
+                Tools::getValue('WASAKREDIT_LEASING_ENABLED')
+            );
+            Configuration::updateValue(
+                'WASAKREDIT_INVOICE_ENABLED',
+                Tools::getValue('WASAKREDIT_INVOICE_ENABLED')
+            );
         }
         $this->html .= $this->displayConfirmation(
             $this->trans(
@@ -202,7 +205,7 @@ class WasaKredit extends PaymentModule
     
     public function hookDisplayProductPriceBlock($params)
         {
-            if (!$this->active || !isset($params['hook_origin']) || $params['hook_origin'] != 'product_sheet') {
+            if (!$this->active || !$this->LEASING_ENABLED || !isset($params['hook_origin']) || $params['hook_origin'] != 'product_sheet') {
                 return;
             }
     
@@ -228,51 +231,57 @@ class WasaKredit extends PaymentModule
         if (!$this->active) {
             return;
         }
-
-        $leasing = new PaymentOption();
-        $leasing->setModuleName($this->name)
-            ->setCallToActionText(
-                $this->trans(
-                    'Wasa Kredit Leasing',
-                    array(),
-                    'Modules.wasakredit.Admin'
-                )
-            )
-            ->setAction(
-                $this->context->link->getModuleLink(
-                    $this->name,
-                    'leasingpayment',
-                    array(),
-                    true
-                )
-            )
-            ->setAdditionalInformation(
-                $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
-            );
+        
+        $payment_methods = [];
+        if ($this->LEASING_ENABLED){
+          $leasing = new PaymentOption();
+          $leasing->setModuleName($this->name)
+              ->setCallToActionText(
+                  $this->trans(
+                      'Wasa Kredit Leasing',
+                      array(),
+                      'Modules.wasakredit.Admin'
+                  )
+              )
+              ->setAction(
+                  $this->context->link->getModuleLink(
+                      $this->name,
+                      'leasingpayment',
+                      array(),
+                      true
+                  )
+              )
+              ->setAdditionalInformation(
+                  $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
+              );
+          array_push($payment_methods, $leasing);
+        }
            
-        // TODO: toggleable 
-        $invoice = new PaymentOption();
-        $invoice->setModuleName($this->name)
-            ->setCallToActionText(
-                $this->trans(
-                    'Wasa Kredit Faktura',
-                    array(),
-                    'Modules.wasakredit.Admin'
-                )
-            )
-            ->setAction(
-                $this->context->link->getModuleLink(
-                    $this->name,
-                    'invoicepayment',
-                    array(),
-                    true
-                )
-            )
-            ->setAdditionalInformation(
-                $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
-            );
-            
-        return array($leasing, $invoice);
+        if($this->INVOICE_ENABLED) {
+          $invoice = new PaymentOption();
+          $invoice->setModuleName($this->name)
+              ->setCallToActionText(
+                  $this->trans(
+                      'Wasa Kredit Faktura',
+                      array(),
+                      'Modules.wasakredit.Admin'
+                  )
+              )
+              ->setAction(
+                  $this->context->link->getModuleLink(
+                      $this->name,
+                      'invoicepayment',
+                      array(),
+                      true
+                  )
+              )
+              ->setAdditionalInformation(
+                  $this->fetch('module:wasakredit/views/templates/front/payment_infos.tpl')
+              );
+          array_push($payment_methods, $invoice);
+        }
+        
+        return !empty($payment_methods) ? $payment_methods : NULL;
     }
 
     public function hookPaymentReturn($params)
@@ -350,7 +359,36 @@ class WasaKredit extends PaymentModule
                             )
                         )
                     ),
-
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->trans('Aktivera leasing', array(), 'Modules.wasakredit.Admin'),
+                        'name' => 'WASAKREDIT_LEASING_ENABLED',
+                        'values' => array(
+                            array(
+                                'id' => 'WASAKREDIT_LEASING_ENABLED_on',
+                                'value' => 1
+                            ),
+                            array(
+                                'id' => 'WASAKREDIT_LEASING_ENABLED_off',
+                                'value' => 0
+                            )
+                        )
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->trans('Aktivera faktura', array(), 'Modules.wasakredit.Admin'),
+                        'name' => 'WASAKREDIT_INVOICE_ENABLED',
+                        'values' => array(
+                            array(
+                                'id' => 'WASAKREDIT_INVOICE_ENABLED_on',
+                                'value' => 1
+                            ),
+                            array(
+                                'id' => 'WASAKREDIT_INVOICE_ENABLED_off',
+                                'value' => 0
+                            )
+                        )
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->trans('Save', array(), 'Admin.Actions'),
@@ -399,6 +437,14 @@ class WasaKredit extends PaymentModule
             'WASAKREDIT_TEST_CLIENTSECRET' => Tools::getValue(
                 'WASAKREDIT_TEST_CLIENTSECRET',
                 Configuration::get('WASAKREDIT_TEST_CLIENTSECRET')
+            ),        
+            'WASAKREDIT_LEASING_ENABLED' => Tools::getValue(
+                'WASAKREDIT_LEASING_ENABLED',
+                Configuration::get('WASAKREDIT_LEASING_ENABLED')
+            ),        
+            'WASAKREDIT_INVOICE_ENABLED' => Tools::getValue(
+                'WASAKREDIT_INVOICE_ENABLED',
+                Configuration::get('WASAKREDIT_INVOICE_ENABLED')
             ),        
         );
     }
