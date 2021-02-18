@@ -53,11 +53,10 @@ class WasakreditInvoicePaymentModuleFrontController extends ModuleFrontControlle
         $this->setTemplate('module:wasakredit/views/templates/front/invoice_checkout.tpl');
     }
     
-//     public function getOrderTotal($withTaxes = true, $type = Cart::BOTH, $products = null, $id_carrier = null, $use_cache = false,        bool $keepOrderPrices = false    ) {        if ((int) $id_carrier <= 0) {            $id_carrier = null;        }
     function apply_currency($amount)
     {
         return array(
-            'amount' => $amount,
+            'amount' => number_format($amount, 2, '.', ''),
             'currency' => $this->context->currency->iso_code
         );
     }
