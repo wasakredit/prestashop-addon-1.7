@@ -73,10 +73,6 @@ function updateleasingplans(amount){
 }
 
 function updateproductlist(product_ids){
-  $( "article.product-miniature .product-price-and-shipping" ).each(function( index ) {
-      $( "<p class='leasing'></p>" ).appendTo($(this));
-  });
-
   $.ajax({
       type: "POST",
       url: ajax_url+'get_productlist.php',
@@ -90,7 +86,8 @@ function updateproductlist(product_ids){
               
               amount = product['monthly_cost']['amount'];
               product_id = product['product_id'];
-              $('*[data-id-product="'+product_id+'"] .product-price-and-shipping p.leasing').text("Leasing "+amount+" kr/mån");
+              $( "<p class='leasing'>Leasing "+amount+" kr/mån</p>" )
+                  .appendTo($('*[data-id-product="'+product_id+'"] .product-price-and-shipping'));
             });
           }
       }
