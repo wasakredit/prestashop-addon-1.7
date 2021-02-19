@@ -3,7 +3,7 @@
 # Fetches dependencies with composer and creates an archive that can be uploaded to prestashop.
 
 trigger:
-- azure-pipelines
+- master
 
 pool:
   vmImage: ubuntu-latest
