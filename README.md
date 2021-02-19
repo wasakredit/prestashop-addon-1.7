@@ -3,7 +3,7 @@ Wasa Kredit Checkout provides a payment solution where you can pay through their
 
 ## Wasa Kredit Checkout - Installation for prestashop 1.7
 
-1. Download module from [https://github.com/wasakredit/prestashop-addon-1.7/archive/master.zip](https://github.com/wasakredit/prestashop-addon-1.7/archive/master.zip).
+1. Download the latest release from the [releases page](https://github.com/wasakredit/prestashop-addon-1.7/releases).
 2. Go to prestashop administration.
 3. Open "Modules / Module" manager page.
 4. In top right corner click on the blue button "Add new module".
