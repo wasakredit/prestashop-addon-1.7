@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
+ * @author    Wasa Kredit AB
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  *
@@ -8,12 +8,14 @@
 
 use Sdk\AccessToken;
 use Sdk\Api;
+use Sdk\ClientFactory;
 use Sdk\Client;
 use Sdk\Response;
 
-require _PS_MODULE_DIR_.'jnwasakredit/wasa/Wasa.php';
+require _PS_MODULE_DIR_.'wasakredit/vendor/wasa/client-php-sdk/Wasa.php';
+require_once _PS_MODULE_DIR_.'wasakredit/utility/SdkHelper.php';
 
-class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
+class WasakreditPaymentModuleFrontController extends ModuleFrontController
 {
     /**
      * @see FrontController::postProcess()
@@ -30,7 +32,7 @@ class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
 
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'jnwasakredit') {
+            if ($module['name'] == 'wasakredit') {
                 $authorized = true;
                 break;
             }
@@ -48,22 +50,12 @@ class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
 
         $this->context->smarty->assign($this->getTemplateVars());
 
-        $this->setTemplate('module:jnwasakredit/views/templates/front/payment17.tpl');
+        $this->setTemplate('module:wasakredit/views/templates/front/wasa_checkout.tpl');
     }
 
     public function getTemplateVars()
     {
-        $config = Configuration::getMultiple(array(
-            'JN_WASAKREDIT_CLIENTID',
-            'JN_WASAKREDIT_CLIENTSECRET',
-            'JN_WASAKREDIT_TEST'
-        ));
-
-        $this->_client = new Client(
-            $config['JN_WASAKREDIT_CLIENTID'],
-            $config['JN_WASAKREDIT_CLIENTSECRET'],
-            $config['JN_WASAKREDIT_TEST']
-        );
+        $this->_client = Wasa_Kredit_Checkout_SdkHelper::CreateClient();
 
         $cart = $this->context->cart;
 
@@ -157,13 +149,13 @@ class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
           ),
           'request_domain' => $this->context->link->getBaseLink(),
           'confirmation_callback_url' => $this->context->link->getModuleLink(
-              'jnwasakredit',
+              'wasakredit',
               'payment',
               array(),
               true
           ),
           'ping_url' => $this->context->link->getModuleLink(
-              'jnwasakredit',
+              'wasakredit',
               'validation',
               array(),
               true
@@ -184,19 +176,20 @@ class JnWasakreditPaymentModuleFrontController extends ModuleFrontController
 
         return array(
             'response' => $response,
+            'iframe' => $response->data,
             'wasa_id' => $wasa_id,
             'error' => $error,
             'order_reference_id' => $cart->secure_key,
             'secure_key' => $customer->secure_key,
             'id_cart' => $cart->id,
             'redirect' => $this->context->link->getModuleLink(
-                'jnwasakredit',
+                'wasakredit',
                 'validation',
                 array(),
                 true
             ),
             'ajax' => $this->context->link->getModuleLink(
-                'jnwasakredit',
+                'wasakredit',
                 'ajax',
                 array(),
                 true

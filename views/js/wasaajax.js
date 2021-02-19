@@ -4,8 +4,8 @@
  * MODULE Wasa Kredit
  *
  * @version   1.0.0
- * @author    Jarda Nalezny <jaroslav@nalezny.cz>
- * @link      http://www.presto-changeo.com
+ * @author    Wasa Kredit AB
+ * @link      http://www.wasakredit.se
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  *
@@ -43,7 +43,7 @@ $( document ).ready(function() {
 });
 
 function updatewasabutton(){
-  if ($('[name="method_payment"]:checked').val() == 'jn_wasakredit'){
+  if ($('[name="method_payment"]:checked').val() == 'wasakredit'){
     $('#btn_place_order').html('<i class="fa-pts fa-pts-shopping-cart"></i>&nbsp;&nbsp;Gå vidare');
   }else{
     $('#btn_place_order').html('<i class="fa-pts fa-pts-shopping-cart"></i>&nbsp;&nbsp;Slutför beställning');
@@ -65,7 +65,7 @@ function updateleasingplans(amount){
               contract_table += '<li>'+contract['monthly_cost']['amount']+' kr/mån ('+contract['contract_length']+' mån)</li>';
             });
             contract_table += '</ul>';
-            $('[value="jn_wasakredit"]').parent().parent().find('.payment_content').html(contract_table);
+            $('[value="wasakredit"]').parent().parent().find('.payment_content').html(contract_table);
           }
       }
   });
@@ -73,7 +73,6 @@ function updateleasingplans(amount){
 }
 
 function updateproductlist(product_ids){
-
   $( "article.product-miniature .product-price-and-shipping" ).each(function( index ) {
       $( "<p class='leasing'></p>" ).appendTo($(this));
   });
@@ -88,12 +87,10 @@ function updateproductlist(product_ids){
             $(results).each(function( index ) {
               data = $(this);
               product = data[0];
-              leasable = product['leasable'];
-              if (leasable == true){
-                amount = product['monthly_cost']['amount'];
-                product_id = product['product_id'];
-                  $('*[data-id-product="'+product_id+'"] .product-meta .product-price-and-shipping p.leasing').text("Leasing "+amount+" kr/mån");
-              }
+              
+              amount = product['monthly_cost']['amount'];
+              product_id = product['product_id'];
+              $('*[data-id-product="'+product_id+'"] .product-price-and-shipping p.leasing').text("Leasing "+amount+" kr/mån");
             });
           }
       }
