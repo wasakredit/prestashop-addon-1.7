@@ -8,11 +8,11 @@
     }
   ],
   "require": {
-    "wasa/client-php-sdk": "dev-5667-InvoiceAdditions"
+    "wasa/client-php-sdk": "v3.0"
   },
   "type": "prestashop-module",
   "config": {
-        "preferred-install": "dist",
-        "prepend-autoloader": false
-    }
+    "preferred-install": "dist",
+    "prepend-autoloader": false
+  }
 }
