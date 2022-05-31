@@ -1,0 +1,66 @@
+/**
+ * 2008 - 2017 Wasa Kredit B2B
+ *
+ * MODULE Wasa Kredit
+ *
+ * @version   1.0.0
+ * @author    Wasa Kredit AB
+ * @link      http://www.wasakredit.se
+ * @copyright Copyright (c) permanent, Wasa Kredit B2B
+ * @license   Wasa Kredit B2B
+ *
+ */
+@font-face {
+    font-family: 'IntroCondRegular';
+    src: url('intro-cond-regular.woff2') format('woff2'),
+    url('intro-cond-regular.woff') format('woff'),
+    url('intro-cond-regular.ttf') format('truetype'); /* Safari, Android, iOS */
+}
+
+#blockcart-modal .wasa-kredit-product-widget {
+    margin-bottom: 20px;
+}
+
+#blockcart-modal .wasa-kredit-product-widget__section-2 {
+    height: auto !important;
+}
+
+.disable_order_button {
+    display: none !important;
+}
+
+.product-price-and-shipping p.leasing {
+    text-align: center;
+    height: 23px;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.product-description {
+    height: auto !important;
+}
+
+#checkout .payment_content h2 {
+    padding-top: 9px;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+
+.wasa-header {
+    font-family: IntroCondRegular, serif;
+}
+
+.checkout_options_wasa_wrapper {
+    font-family: IntroCondRegular, serif;
+    padding-left: 65px;
+}
+
+.checkout_option_wasa {
+    color: #4471C4;
+}
+
+.wasa_checkout_logo {
+    float: left;
+    width: 35px;
+    margin-right: 20px;
+}
