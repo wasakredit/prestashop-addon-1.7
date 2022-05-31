@@ -1,19 +1,34 @@
-# Wasa Kredit Checkout
-Wasa Kredit Checkout provides a payment solution where you can pay through their services. Read more about the services on https://developer.wasakredit.se/intro.
+# Wasa Kredit for Prestashop 1.7
 
-## Wasa Kredit Checkout - Installation for prestashop 1.7
+Wasa Kredit Checkout provides a B2B payment solution where you can pay through their services.
 
-1. Download the latest release from the [releases page](https://github.com/wasakredit/prestashop-addon-1.7/releases).
-2. Go to prestashop administration.
-3. Open "Modules / Module" manager page.
-4. In top right corner click on the blue button "Add new module".
-5. Upload and install zip file with the Wasa Kredit module.
-6. Go to Wasa Kredit module administration page.
-7. Fill out the "Client ID" and "Client secret key"
-8. You are ready to use Wasa Kredit services.
+## Description
 
+This payment module for Prestashop 1.7 allows your B2B customers to pay their orders with ***Wasa Kredit Leasing Checkout*** or ***Wasa Kredit Invoice Checkout***.
 
+## Installation
+
+1. From the [releases page](https://github.com/wasakredit/prestashop-addon-1.7/releases), download the zip archive of latest version.
+2. Log in to your Prestashop administrator backend.
+3. Navigate to *Modules -> Modules & Services* and click the *Add new module* button.
+4. Upload the previously downloaded zip archive of this module.
+5. Find the *Wasa Kredit* in the module list and click the *Configure* button.
+6. Enter your *Client ID* and *Client secret key*.
+7. Enable either or both of the payment options.
+8. Save!
+ 
 ## Requirements
-This module support prestashop version 1.7 up to version 1.7.7 beta
 
-If you are looking for the Wasa Kredit Checkout addon for Prestashop 1.6 go here <br> https://github.com/wasakredit/prestashop-addon-1.6/
+This is the requirements to run this module:
+- Prestashop 1.7.6.0 or later
+- PHP 7.1 or later
+- A valid, approved Wasa Kredit merchant account
+
+## Support
+
+If you have spotted a bug or a technical problem, create a [GitHub issue](https://github.com/wasakredit/prestashop-addon-1.7/issues). 
+For other questions, contact our [support team](https://developer.wasakredit.se/contact).
+
+*We only support the plugin with no customizations. 
+Please make sure before you raise an issue that you revisit it on a newly installed "vanilla" Prestashop environment.
+With this practise you can make sure that the issue is not created by a customization or a third party plugin.*
