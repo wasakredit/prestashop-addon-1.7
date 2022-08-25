@@ -1,6 +1,8 @@
 <?php
 /**
+ * @version   1.0.0
  * @author    Wasa Kredit AB
+ * @link      http://www.wasakredit.se
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  */
@@ -87,7 +89,7 @@ class WasakreditInvoiceModuleFrontController extends ModuleFrontController
               'vat_percentage'       => $product['rate'],
               'price_incl_vat'       => $this->apply_currency($product['price_with_reduction']),
               'price_ex_vat'         => $this->apply_currency($product['price_with_reduction_without_tax']),
-              'vat_amount'           => $this->apply_currency($product['price_with_reduction']-$product['price_with_reduction_without_tax']),
+              'vat_amount'           => $this->apply_currency($product['price_with_reduction'] - $product['price_with_reduction_without_tax']),
               'total_price_incl_vat' => $this->apply_currency($product['price_with_reduction'] * $product['cart_quantity']),
               'total_price_ex_vat'   => $this->apply_currency($product['price_with_reduction_without_tax'] * $product['cart_quantity']),
               'total_vat'            => $this->apply_currency($vat * $product['cart_quantity']),

@@ -1,6 +1,8 @@
 <?php
 /**
+ * @version   1.0.0
  * @author    Wasa Kredit AB
+ * @link      http://www.wasakredit.se
  * @copyright Copyright (c) permanent, Wasa Kredit B2B
  * @license   Wasa Kredit B2B
  */
@@ -60,10 +62,10 @@ class WasakreditConfirmModuleFrontController extends ModuleFrontController
             ? Configuration::get('PS_OS_PREPARATION')
             : Configuration::get('PS_OS_ERROR');
 
-        $cart_id = (int)$cart->id;
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+        $cart_id = (int) $cart->id;
+        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
         $module = $this->module->displayName;
-        $currency_id = (int)$this->context->currency->id;
+        $currency_id = (int) $this->context->currency->id;
         $secure_key = $customer->secure_key;
 
         try {

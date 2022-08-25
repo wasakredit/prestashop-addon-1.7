@@ -26,7 +26,7 @@ class WasaKredit extends PaymentModule
     {
         $this->name = 'wasakredit';
         $this->tab = 'payments_gateways';
-        $this->version = '1.5.0';
+        $this->version = '1.5.1';
         $this->author = 'Wasa Kredit AB';
         $this->need_instance = 0;
 
@@ -207,8 +207,6 @@ class WasaKredit extends PaymentModule
 
     public function hookDisplayProductPriceBlock($params)
     {
-
-
         if (!Configuration::get('WASAKREDIT_LEASING_ENABLED')) {
             return false;
         }
@@ -218,7 +216,6 @@ class WasaKredit extends PaymentModule
         }
 
         if (empty($params['product']->price)) {
-            die('A3');
             return false;
         }
 
@@ -275,74 +272,74 @@ class WasaKredit extends PaymentModule
             'form' => [
                 'legend' => [
                     'title' => $this->trans('Settings', [], 'Modules.wasakredit.Admin'),
-                    'icon' => 'icon-cogs'
+                    'icon'  => 'icon-cogs'
                 ],
                 'input' => [
                     [
-                        'type' => 'text',
-                        'label' => $this->trans('Client ID', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_CLIENTID',
+                        'type'     => 'text',
+                        'label'    => $this->trans('Client ID', [], 'Modules.wasakredit.Admin'),
+                        'name'     => 'WASAKREDIT_CLIENTID',
                         'required' => true
                     ],
                     [
-                        'type' => 'text',
-                        'label' => $this->trans('Client secret key', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_CLIENTSECRET',
+                        'type'     => 'text',
+                        'label'    => $this->trans('Client Secret', [], 'Modules.wasakredit.Admin'),
+                        'name'     => 'WASAKREDIT_CLIENTSECRET',
                         'required' => true
                     ],
                     [
-                        'type' => 'text',
-                        'label' => $this->trans('Test Client ID', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_TEST_CLIENTID',
+                        'type'     => 'text',
+                        'label'    => $this->trans('Client ID (test mode)', [], 'Modules.wasakredit.Admin'),
+                        'name'     => 'WASAKREDIT_TEST_CLIENTID',
                         'required' => false
                     ],
                     [
-                        'type' => 'text',
-                        'label' => $this->trans('Test Client secret key', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_TEST_CLIENTSECRET',
+                        'type'     => 'text',
+                        'label'    => $this->trans('Client Secret (test mode)', [], 'Modules.wasakredit.Admin'),
+                        'name'     => 'WASAKREDIT_TEST_CLIENTSECRET',
                         'required' => false
                     ],
                     [
-                        'type' => 'switch',
-                        'label' => $this->trans('Test mode', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_TEST',
+                        'type'   => 'switch',
+                        'label'  => $this->trans('Test mode', [], 'Modules.wasakredit.Admin'),
+                        'name'   => 'WASAKREDIT_TEST',
                         'values' => [
                             [
-                                'id' => 'WASAKREDIT_TEST_on',
+                                'id'    => 'WASAKREDIT_TEST_on',
                                 'value' => 1
                             ],
                             [
-                                'id' => 'WASAKREDIT_TEST_off',
+                                'id'    => 'WASAKREDIT_TEST_off',
                                 'value' => 0
                             ],
                         ],
                     ],
                     [
-                        'type' => 'switch',
-                        'label' => $this->trans('Aktivera leasing', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_LEASING_ENABLED',
+                        'type'   => 'switch',
+                        'label'  => $this->trans('Aktivera leasing', [], 'Modules.wasakredit.Admin'),
+                        'name'   => 'WASAKREDIT_LEASING_ENABLED',
                         'values' => [
                             [
-                                'id' => 'WASAKREDIT_LEASING_ENABLED_on',
+                                'id'    => 'WASAKREDIT_LEASING_ENABLED_on',
                                 'value' => 1
                             ],
                             [
-                                'id' => 'WASAKREDIT_LEASING_ENABLED_off',
+                                'id'    => 'WASAKREDIT_LEASING_ENABLED_off',
                                 'value' => 0
                             ],
                         ],
                     ],
                     [
-                        'type' => 'switch',
-                        'label' => $this->trans('Aktivera faktura', [], 'Modules.wasakredit.Admin'),
-                        'name' => 'WASAKREDIT_INVOICE_ENABLED',
+                        'type'   => 'switch',
+                        'label'  => $this->trans('Aktivera faktura', [], 'Modules.wasakredit.Admin'),
+                        'name'   => 'WASAKREDIT_INVOICE_ENABLED',
                         'values' => [
                             [
-                                'id' => 'WASAKREDIT_INVOICE_ENABLED_on',
+                                'id'    => 'WASAKREDIT_INVOICE_ENABLED_on',
                                 'value' => 1
                             ],
                             [
-                                'id' => 'WASAKREDIT_INVOICE_ENABLED_off',
+                                'id'    => 'WASAKREDIT_INVOICE_ENABLED_off',
                                 'value' => 0
                             ],
                         ],
@@ -362,9 +359,9 @@ class WasaKredit extends PaymentModule
 
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure='.$this->name
-            . '&tab_module='.$this->tab
-            . '&module_name='.$this->name;
+            . '&configure=' . $this->name
+            . '&tab_module=' . $this->tab
+            . '&module_name=' . $this->name;
 
         $helper->tpl_vars = array(
             'fields_value' => $this->getConfigValues(),
