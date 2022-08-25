@@ -216,7 +216,6 @@ class WasaKredit extends PaymentModule
         }
 
         if (empty($params['product']->price)) {
-            die('A3');
             return false;
         }
 
