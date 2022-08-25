@@ -1,4 +1,12 @@
 <?php
+/**
+ * @version   1.0.0
+ * @author    Wasa Kredit AB
+ * @link      http://www.wasakredit.se
+ * @copyright Copyright (c) permanent, Wasa Kredit B2B
+ * @license   Wasa Kredit B2B
+*/
+
 require_once _PS_MODULE_DIR_.'wasakredit/vendor/wasa/client-php-sdk/Wasa.php';
 
 use Sdk\ClientFactory;
