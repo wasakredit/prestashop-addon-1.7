@@ -15,7 +15,7 @@
     Wasa Kredit Faktura
 </h5>
 <p class="wasa-kredit-payment-features">
-    - Faktura kommer efter att din vara levererats<br>
-    - Betala efter att du fått din leverans<br>
+    - Ta emot dig beställning först, betal senare<br>
+    - Fakturan skickas när din beställning levereras<br>
     - 30 dagars betaltid
 </p>
