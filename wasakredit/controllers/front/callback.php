@@ -57,10 +57,26 @@ class WasakreditCallbackModuleFrontController extends ModuleFrontController
             $this->responseWithError('Failed to load order.');
         }
 
-        $response = $this->_client->add_order_reference($wasa_kredit_id, [
-            'key'   => 'partner_order_number',
-            'value' => $order_id,
-        ]);
+        try {
+            $response = $this->_client->add_order_reference($wasa_kredit_id, [
+                'key'   => 'partner_order_number',
+                'value' => $order_id,
+            ]);
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog('Failed to update payment for order #' . $order_id, 2);
+        }
+
+        try {
+            $payment = OrderPayment::getByOrderId($order_id);
+            $payment = is_array($payment) ? $payment[0] : $payment;
+
+            if (!empty($payment)) {
+                $payment->transaction_id = $wasa_kredit_id;
+                $payment->save();
+            }
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog('Failed to update transaction id (' . $wasa_kredit_id . ') for order #' . $order_id, 2);
+        }
 
         $this->responseWithSuccess();
     }
