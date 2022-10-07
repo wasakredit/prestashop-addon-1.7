@@ -169,7 +169,7 @@ class WasaKredit extends PaymentModule
 
         $this->context->smarty->assign([
             'options' => $this->getLeasingPaymentOptions($params),
-            'logo'    => $this->context->link->getBaseLink() . '/modules/wasakredit/logo.png',
+            'logo'    => $this->context->link->getBaseLink() . 'modules/wasakredit/views/img/wasakredit.svg',
         ]);
 
         $methods = [];
