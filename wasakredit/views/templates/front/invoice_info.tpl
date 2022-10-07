@@ -10,7 +10,7 @@
  * @license   Wasa Kredit B2B
 *}
 
-<img class="wasa-kredit-payment-logo" src="{$logo nofilter}" width="32" />
+<img class="wasa-kredit-payment-logo" src="{$logo nofilter}" width="150" />
 <h5 class="wasa-kredit-payment-header">
     Wasa Kredit Faktura
 </h5>
