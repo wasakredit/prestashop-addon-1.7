@@ -26,7 +26,7 @@ class WasaKredit extends PaymentModule
     {
         $this->name = 'wasakredit';
         $this->tab = 'payments_gateways';
-        $this->version = '1.5.3';
+        $this->version = '1.5.4';
         $this->author = 'Wasa Kredit AB';
         $this->need_instance = 0;
 
@@ -57,6 +57,8 @@ class WasaKredit extends PaymentModule
         Configuration::updateValue('WASAKREDIT_TEST_CLIENTSECRET', '');
         Configuration::updateValue('WASAKREDIT_LEASING_ENABLED', '');
         Configuration::updateValue('WASAKREDIT_INVOICE_ENABLED', '');
+        Configuration::updateValue('WASAKREDIT_WIDGET_ENABLED', '');
+        Configuration::updateValue('WASAKREDIT_WIDGET_LIMIT', 0);
 
         return parent::install()
             && $this->registerHook('paymentOptions')
@@ -74,6 +76,8 @@ class WasaKredit extends PaymentModule
             && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTSECRET')
             && Configuration::deleteByName('WASAKREDIT_LEASING_ENABLED')
             && Configuration::deleteByName('WASAKREDIT_INVOICE_ENABLED')
+            && Configuration::deleteByName('WASAKREDIT_WIDGET_ENABLED')
+            && Configuration::deleteByName('WASAKREDIT_WIDGET_LIMIT')
             && parent::uninstall();
     }
 
@@ -207,7 +211,7 @@ class WasaKredit extends PaymentModule
 
     public function hookDisplayProductPriceBlock($params)
     {
-        if (!Configuration::get('WASAKREDIT_LEASING_ENABLED') || !Configuration::get('WASAKREDIT_WIDGET_ENABLED')) {
+        if (!Configuration::get('WASAKREDIT_WIDGET_ENABLED')) {
             return false;
         }
 
@@ -216,6 +220,10 @@ class WasaKredit extends PaymentModule
         }
 
         if (empty($params['product']->price)) {
+            return false;
+        }
+
+        if ($params['product']->price < Configuration::get('WASAKREDIT_WIDGET_LIMIT')) {
             return false;
         }
 
@@ -238,7 +246,7 @@ class WasaKredit extends PaymentModule
 
     public function hookPaymentReturn($params)
     {
-        if (!Configuration::get('WASAKREDIT_LEASING_ENABLED') || !Configuration::get('WASAKREDIT_INVOICE_ENABLED')) {
+        if (!Configuration::get('WASAKREDIT_LEASING_ENABLED') && !Configuration::get('WASAKREDIT_INVOICE_ENABLED')) {
             return false;
         }
 
@@ -317,21 +325,6 @@ class WasaKredit extends PaymentModule
                             ],
                         ],
                     ],
-                    [
-                        'type'   => 'switch',
-                        'label'  => $this->trans('Aktivera pris-widget', [], 'Modules.wasakredit.Admin'),
-                        'name'   => 'WASAKREDIT_WIDGET_ENABLED',
-                        'values' => [
-                            [
-                                'id'    => 'WASAKREDIT_WIDGET_ENABLED_on',
-                                'value' => 1
-                            ],
-                            [
-                                'id'    => 'WASAKREDIT_WIDGET_ENABLED_off',
-                                'value' => 0
-                            ],
-                        ],
-                    ],
                 ],
                 'submit' => [
                     'title' => $this->trans('Save', [], 'Admin.Actions'),
@@ -380,6 +373,43 @@ class WasaKredit extends PaymentModule
             ],
         ];
 
+        $widget_form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->trans('Pris-widget', [], 'Modules.wasakredit.Admin'),
+                    'icon'  => 'icon-cogs'
+                ],
+                'input' => [
+                    [
+                        'type'   => 'switch',
+                        'label'  => $this->trans('Aktivera pris-widget', [], 'Modules.wasakredit.Admin'),
+                        'name'   => 'WASAKREDIT_WIDGET_ENABLED',
+                        'values' => [
+                            [
+                                'id'    => 'WASAKREDIT_WIDGET_ENABLED_on',
+                                'value' => 1
+                            ],
+                            [
+                                'id'    => 'WASAKREDIT_WIDGET_ENABLED_off',
+                                'value' => 0
+                            ],
+                        ],
+                    ],
+                    [
+                        'type'     => 'text',
+                        'cast'     => 'intval',
+                        'hint'     => $this->trans('Produktens pris måste överskridda detta belopp för att widget:en ska visas.', [], 'Modules.wasakredit.Admin'),
+                        'label'    => $this->trans('Minimum belopp', [], 'Modules.wasakredit.Admin'),
+                        'name'     => 'WASAKREDIT_WIDGET_LIMIT',
+                        'required' => false
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->trans('Save', [], 'Admin.Actions'),
+                ],
+            ],
+        ];
+
         $helper = new HelperForm();
 
         $helper->show_toolbar = false;
@@ -396,7 +426,7 @@ class WasaKredit extends PaymentModule
             'fields_value' => $this->getConfigValues(),
         );
 
-        return $helper->generateForm([$settings_form, $testmode_form]);
+        return $helper->generateForm([$settings_form, $testmode_form, $widget_form]);
     }
 
     public function getConfigValues()
@@ -433,6 +463,10 @@ class WasaKredit extends PaymentModule
             'WASAKREDIT_WIDGET_ENABLED' => Tools::getValue(
                 'WASAKREDIT_WIDGET_ENABLED',
                 Configuration::get('WASAKREDIT_WIDGET_ENABLED')
+            ),
+            'WASAKREDIT_WIDGET_LIMIT' => Tools::getValue(
+                'WASAKREDIT_WIDGET_LIMIT',
+                Configuration::get('WASAKREDIT_WIDGET_LIMIT')
             ),
         ];
     }
