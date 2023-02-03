@@ -57,6 +57,8 @@ class WasaKredit extends PaymentModule
         Configuration::updateValue('WASAKREDIT_TEST_CLIENTSECRET', '');
         Configuration::updateValue('WASAKREDIT_LEASING_ENABLED', '');
         Configuration::updateValue('WASAKREDIT_INVOICE_ENABLED', '');
+        Configuration::updateValue('WASAKREDIT_WIDGET_ENABLED', '');
+        Configuration::updateValue('WASAKREDIT_WIDGET_LIMIT', 0);
 
         return parent::install()
             && $this->registerHook('paymentOptions')
@@ -74,6 +76,8 @@ class WasaKredit extends PaymentModule
             && Configuration::deleteByName('WASAKREDIT_TEST_CLIENTSECRET')
             && Configuration::deleteByName('WASAKREDIT_LEASING_ENABLED')
             && Configuration::deleteByName('WASAKREDIT_INVOICE_ENABLED')
+            && Configuration::deleteByName('WASAKREDIT_WIDGET_ENABLED')
+            && Configuration::deleteByName('WASAKREDIT_WIDGET_LIMIT')
             && parent::uninstall();
     }
 
