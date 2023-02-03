@@ -246,7 +246,7 @@ class WasaKredit extends PaymentModule
 
     public function hookPaymentReturn($params)
     {
-        if (!Configuration::get('WASAKREDIT_LEASING_ENABLED') || !Configuration::get('WASAKREDIT_INVOICE_ENABLED')) {
+        if (!Configuration::get('WASAKREDIT_LEASING_ENABLED') && !Configuration::get('WASAKREDIT_INVOICE_ENABLED')) {
             return false;
         }
 
